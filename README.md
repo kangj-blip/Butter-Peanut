@@ -8,4 +8,4 @@ Hopefully will be a go-to resource for all things BP.
 - Threads for EVERYTHING
 
 
-Could be a html/css front-end, unknown back-end for now.
+Could be a next.js + typescript front-end, next.js API back-end for now.
