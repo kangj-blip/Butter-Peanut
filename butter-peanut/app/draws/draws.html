@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Draws</title>
+	<link rel="stylesheet" href="draws.css">
+</head>
+
+<body>
+	<button id="homeButton"><a href="http://localhost:8000/main.html">BUTTER PEANUT</a></button>
+
+	<button id="makeDrawButton" class="otherButtons" style="display: block; margin-left: auto;">Make Draw</button>
+
+	<div id="draws"></div>
+
+	<div class="unSlotted-container">
+		<div id="unSlotted-title">UnSlotted Teams</div>
+		<div id="unSlotted"></div>
+	</div>
+
+
+	<script>
+		let drawData = [];
+		let unSlotData = [];
+		let scratchConflicts = [];
+		let positionConflicts = []
+
+		const positions = ["OG", "OO", "CG", "CO"];
+
+		let draggedTeam = null;
+
+		async function loadData() {
+			try {
+				const [drawResponse, unSlottedResponse] = await Promise.all([
+					fetch('/draws.json'),
+					fetch('/unSlotted.json')
+				]);
+				if (!drawResponse.ok || !unSlottedResponse.ok) {
+					throw new Error("Failed to load JSON files");
+				}
+
+				drawData = await drawResponse.json();
+				unSlotData = await unSlottedResponse.json();
+
+				await checkDraw();
+				renderDraw();
+
+			} catch (error) {
+				console.error("Error loading data:", error);
+			}
+		}
+
+		loadData();
+
+		function renderDraw() {
+			const draw = document.getElementById("draws");
+			const unSlotted = document.getElementById("unSlotted");
+
+			draw.innerHTML = "";
+			unSlotted.innerHTML = "";
+
+
+			drawData.forEach((room, roomIndex) => {
+				const roomDiv = document.createElement("div");
+				roomDiv.className = "room";
+
+				const header = document.createElement("div");
+				header.className = "room-header";
+
+				header.textContent = "Room: " + room.Room;
+				roomDiv.appendChild(header);
+
+				const teams = document.createElement("div");
+				teams.className = "teams";
+
+				positions.forEach(position => {
+					const positionDiv = document.createElement("div");
+					positionDiv.className = "position";
+
+					positionDiv.dataset.room = roomIndex;
+					positionDiv.dataset.position = position;
+
+					const title = document.createElement("div");
+					title.className = "position-title";
+					title.textContent = position;
+
+					positionDiv.appendChild(title);
+
+					const team = room[position];
+
+					if (Array.isArray(team) && team.length > 0) {
+						const teamDiv = createTeam(team, roomIndex, position);
+						positionDiv.appendChild(teamDiv);
+
+					} else {
+						const emptyTeam = document.createElement("div");
+						emptyTeam.className = "empty-team";
+						emptyTeam.textContent = "";
+						positionDiv.appendChild(emptyTeam);
+					}
+
+					addDropEvents(positionDiv);
+					teams.appendChild(positionDiv);
+				});
+
+				roomDiv.appendChild(teams);
+				draw.appendChild(roomDiv);
+			});
+
+			unSlotData.forEach((team, index) => {
+				const teamDiv = createUnSlottedTeam(team, index);
+				unSlotted.appendChild(teamDiv);
+			});
+
+			addUnSlottedDropEvents();
+		}
+
+		function createTeam(team, roomIndex, position) {
+			const teamDiv = document.createElement("div");
+
+			teamDiv.className = "team";
+			teamDiv.draggable = true;
+
+			team.forEach(debater => {
+				const div = document.createElement("div");
+				div.className = "debater";
+				div.textContent = debater;
+
+				const speakerScratchConflicts = scratchConflicts.filter(
+					conflict =>
+						conflict.speaker === debater ||
+						conflict.scratch === debater
+				);
+
+				const speakerPositionConflicts = positionConflicts.filter(
+					conflict => conflict.speaker === debater
+				);
+
+				if (speakerScratchConflicts.length > 0) {
+					div.classList.add("scratch-conflict");
+				}
+
+				if (speakerPositionConflicts.length > 0) {
+					div.classList.add("position-conflicts");
+				}
+
+				const messages = [
+					...speakerScratchConflicts.map(conflict => conflict.message),
+					...speakerPositionConflicts.map(conflict => conflict.message)
+				];
+
+				if (messages.length > 0) {
+					div.title = messages.join("\n");
+				}
+
+
+				teamDiv.appendChild(div);
+			});
+
+			teamDiv.addEventListener("dragstart", () => {
+				draggedTeam = {roomIndex, position};
+				teamDiv.classList.add("dragging");
+			});
+
+			teamDiv.addEventListener("dragend", () => {
+				teamDiv.classList.remove("dragging");
+				draggedTeam = null;
+			});
+
+			return teamDiv;
+		}
+		function createUnSlottedTeam(team, index) {
+			const teamDiv = document.createElement("div");
+
+			teamDiv.className = "unSlotted-team";
+			teamDiv.draggable = true;
+
+			team.forEach(debater => {
+				const div = document.createElement("div");
+				div.textContent = debater;
+				teamDiv.appendChild(div);
+			});
+
+			teamDiv.addEventListener("dragstart", () => {
+				draggedTeam = {unSlottedIndex: index};
+				teamDiv.classList.add("dragging");
+			});
+
+			teamDiv.addEventListener("dragend", () => {
+				teamDiv.classList.remove("dragging");
+				draggedTeam = null;
+			});
+
+			return teamDiv;
+		}
+
+
+		function addDropEvents(positionDiv) {
+			positionDiv.addEventListener("dragover", event => {
+				event.preventDefault();
+				positionDiv.classList.add("drag-over");
+			});
+
+			positionDiv.addEventListener("dragleave", () => {
+				positionDiv.classList.remove("drag-over");
+			});
+
+			positionDiv.addEventListener("drop", async event => {
+				event.preventDefault();
+				positionDiv.classList.remove("drag-over");
+
+				if (!draggedTeam) return;
+
+				const targetRoom = Number(positionDiv.dataset.room);
+				const targetPosition = positionDiv.dataset.position;
+
+				if (
+					draggedTeam.roomIndex === targetRoom &&
+					draggedTeam.position === targetPosition
+				) {
+					return;
+				}
+
+				const targetTeam = drawData[targetRoom][targetPosition];
+
+				if (draggedTeam.roomIndex !== undefined) {
+					const sourceRoom = draggedTeam.roomIndex;
+					const sourcePosition = draggedTeam.position;
+					const sourceTeam = drawData[sourceRoom][sourcePosition];
+
+					drawData[sourceRoom][sourcePosition] = targetTeam;
+					drawData[targetRoom][targetPosition] = sourceTeam;
+				}
+
+				else if (draggedTeam.unSlottedIndex !== undefined) {
+					const index = draggedTeam.unSlottedIndex;
+					const team = unSlotData[index];
+
+					if (!team) return;
+
+					if (Array.isArray(targetTeam) && targetTeam.length > 0) {
+						unSlotData[index] = targetTeam;
+					} else {
+						unSlotData.splice(index, 1);
+					}
+
+					drawData[targetRoom][targetPosition] = team;
+				}
+
+				await checkDraw();
+				renderDraw();
+			});
+		}
+
+
+		function addUnSlottedDropEvents() {
+			const unSlotted = document.getElementById("unSlotted");
+
+			unSlotted.addEventListener("dragover", event => {
+				event.preventDefault();
+				unSlotted.classList.add("drag-over");
+			});
+
+			unSlotted.addEventListener("dragleave", event => {
+				if (!unSlotted.contains(event.relatedTarget)) {
+					unSlotted.classList.remove("drag-over");
+				}
+			});
+
+			unSlotted.addEventListener("drop", async event => {
+				event.preventDefault();
+				unSlotted.classList.remove("drag-over");
+
+				if (!draggedTeam) return;
+
+				if (draggedTeam.roomIndex !== undefined) {
+					const roomIndex = draggedTeam.roomIndex;
+					const position = draggedTeam.position;
+					const team = drawData[roomIndex][position];
+
+					if (Array.isArray(team) && team.length > 0) {
+						unSlotData.push(team);
+						drawData[roomIndex][position] = "";
+					}
+				}
+
+				await checkDraw();
+				renderDraw();
+			});
+		}
+
+		const makeDrawButton = document.getElementById("makeDrawButton");
+
+		makeDrawButton.addEventListener("click", async () => {
+
+			const confirmed = confirm(
+				"Generate a new draw? This will replace the current draw."
+			);
+
+			if (!confirmed) return;
+
+			makeDrawButton.disabled = true;
+			makeDrawButton.textContent = "Generating...";
+
+			try {
+				const response = await fetch("/api/generate-draw", {
+					method: "POST"
+				});
+
+				const result = await response.json();
+
+				if (!response.ok) {
+					throw new Error(
+						result.error || "Failed to generate draw."
+					);
+				}
+
+				drawData = result.draw;
+				unSlotData = result.unslotted || [];
+
+				await checkDraw();
+				renderDraw();
+
+				alert("Draw generated.");
+
+			} catch (error) {
+				console.error("Error generating draw:", error);
+				alert("Could not generate draw: " + error.message);
+
+			} finally {
+				makeDrawButton.disabled = false;
+				makeDrawButton.textContent = "Make Draw";
+			}
+		});
+
+		async function checkDraw() {
+			try {
+				const drawResponse = await fetch("/api/draw", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(drawData)
+				});
+
+				if (!drawResponse.ok) {
+					throw new Error("Failed to save draw.");
+				}
+
+				const drawResult = await drawResponse.json();
+				scratchConflicts = drawResult.conflicts || [];
+				positionConflicts = drawResult.positionConflicts || [];
+
+				const unSlottedResponse = await fetch("/api/unSlotted", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(unSlotData)
+				});
+
+				if (!unSlottedResponse.ok) {
+					throw new Error("Failed to save unslotted teams.");
+				}
+
+				console.log("Draw and unslotted teams checked.");
+
+			} catch (error) {
+				console.error("Could not save changes:", error);
+				alert("Could not save changes: " + error.message);
+			}
+		}
+
+
+	</script>
+
+</body>
+</html>
