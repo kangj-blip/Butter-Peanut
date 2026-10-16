@@ -5,10 +5,14 @@
 
 Draws, Motion Analytics, Speaks (averages, means, medians, patterns, etc.)
 
-## The Current Vision:
+## The Vision:
 - Sign-ins for Personal BP Debates info such as Attended Tournaments, Speaks (averages, means, medians, patterns, etc.)
 - Motion bank for Tournaments but only motions added by me (to add your own motions, make an account, only visible to you)
 - Threads for EVERYTHING
 
+## Update Log
+### Oct 16th, 2026
+- Currently limited to local files on http://localhost:8000/
 
-Could be a next.js + typescript front-end, next.js API back-end for now.
+---
+Could be a html/css front-end, python back-end.
