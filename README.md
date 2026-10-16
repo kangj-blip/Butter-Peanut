@@ -15,4 +15,4 @@ Draws, Motion Analytics, Speaks (averages, means, medians, patterns, etc.)
 - Currently limited to local files on http://localhost:8000/
 
 ---
-Could be a html/css front-end, python back-end.
+Typescript + Javascript front-end, Python back-end.
