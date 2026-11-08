@@ -8,7 +8,7 @@ class handler(BaseHTTPRequestHandler):
             "success": True,
             "message": "Butter Peanut API is running!",
             "blob_connected": bool(
-                os.environ.get("NUT_READ_WRITE_TOKEN")
+                os.environ.get("BLOB_READ_WRITE_TOKEN")
                 or (
                     os.environ.get("VERCEL_OIDC_TOKEN")
                     and os.environ.get("NUT_STORE_ID")
