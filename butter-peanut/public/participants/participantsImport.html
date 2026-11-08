@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Participants</title>
+	<link rel="stylesheet" href="participantsImport.css">
+</head>
+
+<body>
+	<div>
+		<button id="homeButton"><a href="http://localhost:8000/main.html">BUTTER PEANUT</a></button>
+		<img src="hhdclogo.jpg" width="90px" style="position: absolute; right: 30px; top: 10px;">
+	</div>
+
+	<div style="display: flex; flex-direction: column; justify-content: center; text-align: center; align-content: center; width: fit-content; margin: 50px auto;">
+		<h1>Import CSV Files</h1>
+
+		<h2>Signups</h2>
+		<p>Replace <code>app/signups.csv</code></p>
+		<input type="file" id="signupsFile" accept=".csv,text/csv">
+		<button onclick="importCSV('signupsFile', 'signups')" class="otherButtons">
+			Import Signups CSV
+		</button>
+
+		<h2>Rooms</h2>
+		<p>Replace <code>app/rooms.csv</code></p>
+		<input type="file" id="roomsFile" accept=".csv,text/csv">
+		<button onclick="importCSV('roomsFile', 'rooms')" class="otherButtons">
+			Import Rooms CSV
+		</button>
+
+		<p id="status" role="status"></p>
+	</div>
+	
+
+
+	<script>
+		async function importCSV(inputId, type) {
+			const input = document.getElementById(inputId);
+			const status = document.getElementById("status");
+			const file = input.files[0];
+
+			if (!file) {
+				status.textContent = "Please select a CSV file first.";
+				return;
+			}
+
+			if (!file.name.toLowerCase().endsWith(".csv")) {
+				status.textContent = "Please select a .csv file.";
+				return;
+			}
+
+			if (!confirm(
+				`Replace app/${type}.csv with "${file.name}"?`
+			)) {
+				return;
+			}
+
+			const response = await fetch(`/api/import-csv/${type}`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "text/csv; charset=utf-8"
+				},
+				body: await file.text()
+			});
+
+			try {
+				status.textContent = "Importing...";
+
+				const response = await fetch(`/api/import-csv/${type}`, {
+					method: "POST",
+					body: formData
+				});
+
+				const result = await response.json();
+
+				if (!response.ok) {
+					throw new Error(result.error || "Import failed.");
+				}
+
+				status.textContent =
+					`Successfully replaced ${type}.csv.`;
+
+				input.value = "";
+
+			} catch (error) {
+				status.textContent = `Error: ${error.message}`;
+			}
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+[
+    {
+        "Room": "HH Wonderland",
+        "OG": [
+            "Speaker 1",
+            "Speaker 2"
+        ],
+        "OO": "",
+        "CG": "",
+        "CO": [
+            "George Washington",
+            "Hamilton"
+        ]
+    },
+    {
+        "Room": "HH Paradise",
+        "OG": [
+            "Thing 1",
+            "Thing 2"
+        ],
+        "OO": "",
+        "CG": "",
+        "CO": ""
+    }
+]

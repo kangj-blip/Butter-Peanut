@@ -1,0 +1,50 @@
+[
+    {
+        "name": "Speaker 1",
+        "debate/judge": "Debate",
+        "pro/nov": "nov",
+        "partner": "Speaker 2",
+        "positions": [
+            "OG"
+        ],
+        "scratches": [
+            "Thing 1"
+        ]
+    },
+    {
+        "name": "Thing 1",
+        "debate/judge": "Debate",
+        "pro/nov": "nov",
+        "partner": "Thing 2",
+        "positions": [
+            ""
+        ],
+        "scratches": [
+            ""
+        ]
+    },
+    {
+        "name": "George Washington",
+        "debate/judge": "Debate",
+        "pro/nov": "pro",
+        "partner": "Hamilton",
+        "positions": [
+            "CO"
+        ],
+        "scratches": [
+            ""
+        ]
+    },
+    {
+        "name": "six",
+        "debate/judge": "Debate",
+        "pro/nov": "nov",
+        "partner": "seven",
+        "positions": [
+            ""
+        ],
+        "scratches": [
+            ""
+        ]
+    }
+]

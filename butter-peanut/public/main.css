@@ -1,0 +1,69 @@
+a {
+	color: inherit;  
+	text-decoration: none;
+}
+
+button {
+	all: unset;
+	font-family: Georgia, sans-serif;
+	cursor: pointer;
+	color: white;
+}
+
+button:hover {
+	color: #FAE588;
+}
+
+#homeButton {
+	font-size: 40px;
+}
+
+.menu {
+	margin: 80px;
+	background: white;
+	border-radius: 15px;
+	border: 2px black;
+}
+
+.menuButtons {
+	width: 96%;
+	display: flex;
+	background: white;
+	color: black;
+	padding: 20px;
+	border-radius: 15px;
+	font-size: 18px;
+	margin-right: 20px;
+}
+
+.menuButtons:hover {
+	background: #FDF8E1;
+	color: black;
+}
+
+.otherButtons {
+    background: #FAE588;
+    color: #03438f;
+    padding: 12px 24px;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 15px 0;
+}
+
+.otherButtons:hover {
+    background: white;
+    color: #03438f;
+}
+
+.otherButtons:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+body {
+	font-family: Verdana, sans-serif;
+	background: #03438f;
+	margin: 30px;
+}
